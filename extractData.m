@@ -119,8 +119,7 @@ if ~isempty(spikes_file)
             spikebins(~(bsxfun(@gt,binl,trial_start_align(b.su(j,i).trials)) & bsxfun(@le,binu,trial_end_align(b.su(j,i).trials))))=NaN;
             b.su(j,i).fr=mean(spikebins,'omitnan')/(b.binwidth);
             
-            b.su(j,i).fr_se=std(spikebins,'omitnan')/(sqrt(length(b.su(j,i).trials))*b.binwidth);
-            
+            b.su(j,i).fr_se=std(spikebins,'omitnan')./(sqrt(sum(~isnan(spikebins)))*b.binwidth);
             
         end
     end
