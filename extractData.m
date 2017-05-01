@@ -20,19 +20,20 @@ end
 %% Do Behavior
 
 
-% DENNIS: WHAT OF THIS DO WE ACTUALLY NEED?
+% DENNIS: WHAT OF THIS DO WE ACTUALLY NEED? Answer: ALL OF IT
 load([F,ao_file],'CPORT__1','CPORT__1_KHz');%load AO sync data
 ev1=CPORT__1(2,:); % events recorded by AO
-tev1=CPORT__1(1,:)/(CPORT__1_KHz*1000); % event timestamps
+b.tev1=CPORT__1(1,:)/(CPORT__1_KHz*1000); % event timestamps
+b.begin=CRAW_01_TimeBegin;
 b.file=[F,behavioral_file];%store it
 b.trial_start_ind=find(ev1==21002); %trial start times
 b.trial_end_ind=find(ev1==21003); %trial end times
-%in case we started recording in the middle of a trial, get rid of and end before a start
+%in case we started recording in the middle of a trial, get rid of an end before a start
 b.trial_end_ind(b.trial_end_ind<b.trial_start_ind(1))=[];
 b.trial_start_ind(b.trial_start_ind>b.trial_end_ind(end))=[];
 
 
-%get the index of the ?
+%get the index of the trial ID message
 trial_id_ind=find(ev1==24874); %trial ID message, word 1
 [trial_id_ind_ind,~]=find(bsxfun(@gt,trial_id_ind,b.trial_start_ind') & bsxfun(@lt,trial_id_ind,b.trial_end_ind')); %find which trial each ID is in
 
@@ -67,7 +68,7 @@ end
 % now convert all event indices to event times
 b.tev1_trials=NaN(length(trial_num),length(event_codes));
 event_log=~isnan(b.events_ind_all);
-b.tev1_trials(event_log)=tev1(b.events_ind_all(event_log));
+b.tev1_trials(event_log)=b.tev1(b.events_ind_all(event_log));
 %% load the rome data
 load([F,behavioral_file]);
 for trial=1:length(trial_data)
