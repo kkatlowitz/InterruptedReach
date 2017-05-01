@@ -1,13 +1,13 @@
 function b=align_spikes(b,cluster_class)
 
-stimes=cluster_class(:,2)/1000 + CRAW_01_TimeBegin; %spike times converted to seconds
+stimes=cluster_class(:,2)/1000 + b.begin; %spike times converted to seconds
 
 b.psth_start_num=-2;
 b.psth_end_num=2;
 b.binwidth=0.1;
 
-b.trial_start=tev1(b.trial_start_ind)';
-b.trial_end=tev1(b.trial_end_ind)';
+b.trial_start=b.tev1(b.trial_start_ind)';
+b.trial_end=b.tev1(b.trial_end_ind)';
 
 event_plot=[1:6,8];
 for j=1:7
@@ -25,7 +25,7 @@ for j=1:7
     for i=1:length(unique(cluster_class(:,1)))-1
         b.su(j,i).stimes=stimes(cluster_class(:,1)==i); %single unit spike times
 
-        b.su(j,i).stimes(b.su(j,i).stimes<tev1(b.trial_start_ind(1)))=[];
+        b.su(j,i).stimes(b.su(j,i).stimes<b.tev1(b.trial_start_ind(1)))=[];
 
         [b.su(j,i).stimes_ind,b.su(j,i).strials]=find(bsxfun(@gt,b.su(j,i).stimes,b.psth_start')...
             & bsxfun(@le,b.su(j,i).stimes,b.psth_end') & bsxfun(@gt,b.su(j,i).stimes,b.trial_start')...
@@ -33,15 +33,7 @@ for j=1:7
 
         b.su(j,i).stimes_align=b.su(j,i).stimes(b.su(j,i).stimes_ind)-b.psth_start(b.su(j,i).strials) + b.psth_start_num;
         b.su(j,i).trials=unique(b.su(j,i).strials);
-        ntrials=length(unique(b.su(j,i).strials));
-
-
-        spikebins=bsxfun(@ge,b.su(j,i).stimes_align,binl) & bsxfun(@lt,b.su(j,i).stimes_align,binu);
-        spikebins=mat2cell(spikebins,histcounts(b.su(j,i).strials,[b.su(j,i).trials;b.su(j,i).strials(end)+0.5]));
-        spikebins=cell2mat(cellfun(@(x)sum(x,1),spikebins,'UniformOutput',0));
-        spikebins(~(bsxfun(@gt,binl,trial_start_align(b.su(j,i).trials)) & bsxfun(@le,binu,trial_end_align(b.su(j,i).trials))))=NaN;
-        b.su(j,i).fr=mean(spikebins,'omitnan')/(b.binwidth);
-
-        b.su(j,i).fr_se=std(spikebins,'omitnan')./(sqrt(sum(~isnan(spikebins)))*b.binwidth);
+        
+        b.su(j,i).data=cell2struct(mat2cell(b.su(j,i).stimes_align,histcounts(b.su(j,i).strials,[b.su(j,i).trials;b.su(j,i).strials(end)+0.5])),'times',2);
     end
 end
