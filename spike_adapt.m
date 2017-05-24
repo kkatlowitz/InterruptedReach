@@ -6,7 +6,7 @@ mins=accumarray(subs',signal',[],@min); %find the minimim of each segment
 breakpoints=find(abs(diff(mins)./mins(1:end-1))>0.25) * 176000;
 split=[breakpoints(1);diff(breakpoints);length(signal)-breakpoints(end)];
 signalbreak=mat2cell(signal,split);
-
+indexadd=cumsum(split);
 for j=1:length(signalbreak)
     signal=signalbreak{j};
     i=1;
@@ -21,6 +21,9 @@ for j=1:length(signalbreak)
     end
     
     [spikes{j},~,index{j}]=spike_detect(signalbreak{j}',par,thr{j}(end));
+    if j>1
+        index{j}=index{j}+breakpoints(j-1);
+    end
 end
 
 spikes=spikes';
