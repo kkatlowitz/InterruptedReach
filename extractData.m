@@ -39,11 +39,11 @@ trial_id_ind=find(ev1==24874); %trial ID message, word 1
 
 %get the data message associated with each trial ID message
 trial_num=zeros(1,length(trial_id_ind_ind));
-trial_num(trial_id_ind_ind)=ev1(trial_id_ind(trial_id_ind_ind)+4); 
-% there is a glitch where when word 4 
-% (I still don't know what this word represents but it increases by 1 
+trial_num(trial_id_ind_ind)=ev1(trial_id_ind(trial_id_ind_ind)+4);
+% there is a glitch where when word 4
+% (I still don't know what this word represents but it increases by 1
 % each trial) is 20502, it is missed, so the data is shifted
-glitch_trial_ind=find(ev1(trial_id_ind+3)==20501)+1; 
+glitch_trial_ind=find(ev1(trial_id_ind+3)==20501)+1;
 trial_num(trial_id_ind_ind(glitch_trial_ind))=ev1(trial_id_ind(glitch_trial_ind)+3);
 b.trial_id_ind_ind=trial_id_ind_ind;
 %now we need to fix the broken bit in the trial numbering. this will be ad
@@ -72,7 +72,8 @@ b.tev1_trials(event_log)=b.tev1(b.events_ind_all(event_log));
 %% load the rome data
 load([F,behavioral_file]);
 for trial=1:length(trial_data)
-    b.id(trial)=trial_data{trial}.id;
+    b.rome_id(trial)=trial_data{trial}.trial_id;
+    b.type(trial)=trial_data{trial}.trial_type;
     b.t(trial,1:2)=[trial_data{trial}.start_t,trial_data{trial}.end_t];
     b.leap(trial).t=trial_data{trial}.touch_data(:,4);
     b.leap(trial).hand_detected=trial_data{trial}.touch_data(:,3);
@@ -81,3 +82,9 @@ for trial=1:length(trial_data)
     b.event_happened(trial,:)=trial_data{trial}.event_happened;
     b.event_time(trial,:)=trial_data{trial}.event_time;
 end
+r2ao=ismember(b.rome_id,b.trial_num);
+b.type=b.type(r2ao);
+b.t=b.t(r2ao,:);
+b.event_happened=b.event_happened(r2ao,:);
+b.event_time=b.event_time(r2ao,:);
+b.leap=b.leap(r2ao);
