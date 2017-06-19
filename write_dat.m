@@ -7,7 +7,7 @@ file=strrep(ao.file,'mat','dat');
 fid=fopen(file,'w');
 sig=ao.dat;
 pad=3-size(sig,2);
-sig=[sig,randn(size(sig,1),pad)/500];
+sig=[sig,randn(size(sig,1),pad)/50];
 if ~isempty(tRange)
     t=(1:size(sig,1))/ao.fs;
     inds=t>tRange(1)&t<tRange(2);

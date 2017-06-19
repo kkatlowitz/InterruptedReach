@@ -1,6 +1,8 @@
-function b=align_spikes(b,cluster_class)
+function b=align_spikes(b,spks)
 
-stimes=cluster_class(:,2)/1000 + b.begin; %spike times converted to seconds
+% stimes=cluster_class(:,2)/1000 + b.begin; %spike times converted to seconds
+stimes=spks.t+b.begin;%changed this to be more intuitive, gave variables diff names
+clust_id=spks.clust_id;
 
 b.psth_start_num=-4;
 b.psth_end_num=4;
@@ -22,8 +24,8 @@ for j=1:8
 
     %ntrials=length(unique(su(1).strials));
 
-    for i=1:length(unique(cluster_class(:,1)))-1
-        b.su(j,i).stimes=stimes(cluster_class(:,1)==i); %single unit spike times
+    for i=1:length(unique(clust_id))-1
+        b.su(j,i).stimes=stimes(clust_id==i); %single unit spike times
 
         b.su(j,i).stimes(b.su(j,i).stimes<b.tev1(b.trial_start_ind(1)))=[];
 
