@@ -1,0 +1,152 @@
+%% calculate PSTHs separated by trial type (requires chronux toolbox)
+for b=1:2
+    for j=1:8
+        for i=1:size(sub(1).block(b).b.su,2)
+            
+            type=sub(1).block(b).b.type;
+            type=type(sub(1).block(b).b.su(j,i).trials);
+            data=sub(1).block(1).b.su(j,i).data;
+            for k=[1,4,5]
+                if nnz(type==k)~=0
+                    [sub(1).block(b).b.su(j,i).fr{k},sub(1).block(b).b.su(j,i).fr_times{k},...
+                        sub(1).block(b).b.su(j,i).fr_se{k}]=...
+                        psth(data(type==k),0.05,'n',[-4,4],2,-4:0.01:4);
+                end
+            end
+        end
+    end
+    
+end
+%% plot rasters with PSTH aligned to particular event (change j to change event)
+
+figure
+colors=get(gca,'colororder');
+
+j=8;
+for b=1:2
+    if b~=1
+        figure
+    end
+    
+    binl=sub(1).block(b).b.psth_start_num:0.002:(sub(1).block(b).b.psth_end_num-sub(1).block(b).b.binwidth); %sliding window
+    binu=(sub(1).block(b).b.psth_start_num+sub(1).block(b).b.binwidth):0.002:sub(1).block(b).b.psth_end_num;
+    
+    for i=1:size(sub(1).block(b).b.su,2)
+        subplot(2,size(sub(1).block(b).b.su,2),i)
+        plot(sub(1).block(b).b.su(j,i).stimes_align*1000,sub(1).block(b).b.su(j,i).strials,'.') %plot rasters
+        title(['Single Unit ',num2str(i)])
+        xlabel('Time (ms)')
+        set(gca,'box','off')
+        subplot(2,size(sub(1).block(b).b.su,2),size(sub(1).block(b).b.su,2)+i)
+        
+        col=1;
+        for k=[4,5]
+            patchx=[sub(1).block(b).b.su(j,i).fr_times{k}*1000,fliplr(sub(1).block(b).b.su(j,i).fr_times{k}*1000)];
+            patchy=[sub(1).block(b).b.su(j,i).fr{k}-sub(1).block(b).b.su(j,i).fr_se{k},fliplr(sub(1).block(b).b.su(j,i).fr{k}+sub(1).block(b).b.su(j,i).fr_se{k})];
+            err=patch(patchx(~isnan(patchy)),patchy(~isnan(patchy)),mean([colors(col,:);1,1,1]),'EdgeColor','none','FaceAlpha',0.5);
+            
+            hold on
+
+            plot(sub(1).block(b).b.su(j,i).fr_times{k}*1000,sub(1).block(b).b.su(j,i).fr{k},'Color',colors(col,:))
+            col=col+1;
+        end
+        xlim([-2000,2000])
+        title(['Single Unit ',num2str(i)])
+        xlabel('Time (ms)')
+        set(gca,'box','off')
+    end
+    suptitle(['Block',num2str(b)])
+end
+
+%% plot PSTHs for all events
+event_plot=[1:4,8];
+types=[1,4,5];
+event_names={'Fixation','Target','Go','Target Change','Turn'};
+figure
+colors=get(gca,'colororder');
+for b=1:2
+    if b>1
+        figure
+    end
+    for j=1:length(event_plot)
+        for i=1:size(sub(1).block(b).b.su,2)
+            subplot(length(event_plot),size(sub(1).block(b).b.su,2),size(sub(1).block(b).b.su,2)*(j-1)+i)
+            
+            for k=1:length(types)
+                if ~isempty(sub(1).block(b).b.su(event_plot(j),i).fr_times{types(k)})
+                    patchx=[sub(1).block(b).b.su(event_plot(j),i).fr_times{types(k)},fliplr(sub(1).block(b).b.su(event_plot(j),i).fr_times{types(k)})];
+                    patchy=[sub(1).block(b).b.su(event_plot(j),i).fr{types(k)}-sub(1).block(b).b.su(event_plot(j),i).fr_se{types(k)},fliplr(sub(1).block(b).b.su(event_plot(j),i).fr{types(k)}+sub(1).block(b).b.su(event_plot(j),i).fr_se{types(k)})];
+                    patch(patchx(~isnan(patchy)),patchy(~isnan(patchy)),mean([colors(k,:);1,1,1]),'EdgeColor','none','FaceAlpha',0.5)
+                    
+                    
+                    hold on
+                    plot(sub(1).block(b).b.su(event_plot(j),i).fr_times{types(k)},sub(1).block(b).b.su(event_plot(j),i).fr{types(k)},'Color',colors(k,:))
+                end
+            end
+            line([0,0],[0,400],'color','k')
+            title(event_names(j))
+            if b==1
+                if i==1
+                    ylim([20 70])
+                elseif i==2
+                    ylim([20 70])
+                else
+                    ylim([0 10])
+                end
+            else
+                if i==3
+                    ylim([15,70])
+                else
+                    ylim([15,70])
+                end
+            end
+        end
+    end
+    suptitle(['Block',num2str(b)])
+end
+%% plot local LFPs aligned to events
+events=[1:4,8];
+type=[1,4,5];
+t=-4:0.001:4;
+event_names={'Fixation','Target','Go','Target Change','Turn'};
+figure
+for blocknum=1:2
+    for j=1:length(events)
+        trialtype=sub(1).block(blocknum).b.type;
+        trialtype=trialtype(sub(1).block(blocknum).b.su(events(j),1).trials);
+        subplot(length(events),2,2*(j-1)+blocknum)
+        if ismember(j,1:3)
+            for k=1:3
+                meansig=mean(cell2mat(sub(1).block(blocknum).ao.trials(events(j),trialtype==type(k))'));
+                se=std(cell2mat(sub(1).block(blocknum).ao.trials(events(j),trialtype==type(k))'))./sqrt(nnz(trialtype==type(k)));
+                plot(t,meansig,'color',colors(k,:))
+                hold on
+                h(k)=patch([t,fliplr(t)],[meansig-se,fliplr(meansig+se)],colors(k,:),'FaceAlpha',0.5,'EdgeColor','none');
+            end
+        elseif j==4
+            for k=3
+                meansig=mean(cell2mat(sub(1).block(blocknum).ao.trials(events(j),trialtype==type(k))'));
+                se=std(cell2mat(sub(1).block(blocknum).ao.trials(events(j),trialtype==type(k))'))./sqrt(nnz(trialtype==type(k)));
+                plot(t,meansig,'color',colors(k,:))
+                hold on
+                patch([t,fliplr(t)],[meansig-se,fliplr(meansig+se)],colors(k,:),'FaceAlpha',0.5,'EdgeColor','none')
+            end
+        elseif j==5
+            for k=2:3
+                meansig=mean(cell2mat(sub(1).block(blocknum).ao.trials(events(j),trialtype==type(k))'));
+                se=std(cell2mat(sub(1).block(blocknum).ao.trials(events(j),trialtype==type(k))'))./sqrt(nnz(trialtype==type(k)));
+                plot(t,meansig,'color',colors(k,:))
+                hold on
+                patch([t,fliplr(t)],[meansig-se,fliplr(meansig+se)],colors(k,:),'FaceAlpha',0.5,'EdgeColor','none')
+            end
+            xlabel('Time (s)')
+        end
+        ylim([-0.3,0.1])
+        xlim([-4,4])
+        title(event_names(j))
+        set(gca,'box','off')
+        %plot(meansig)
+    end
+end
+leg=legend(h,'Go','Turn','Swerve');
+set(leg,'Position',[0.35,-0.01,0.3,0.1],'box','off','orientation','horizontal')
