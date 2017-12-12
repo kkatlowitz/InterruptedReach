@@ -12,7 +12,6 @@ lfpFilt = designfilt('bandpassfir','FilterOrder',500, ... %% for LFP
 %    'CutoffFrequency1',0.5,'CutoffFrequency2',3, ...
 %    'SampleRate',ao.fs_low);
 
-ao.bp=filtfilt(bpFilt,ao.dat);
-ao.dat=resample(ao.dat,1,44); %% for syncing to LFP
-ao.lfp=filtfilt(lfpFilt,ao.dat);
+ao.bp=filtfilt(bpFilt,ao.dat');
+ao.lfp=filtfilt(lfpFilt,resample(ao.dat,1,44));
 %ao.lfp=filtfilt(lpFilt,ao.lfp);  %% use to get rid of slow oscillations
