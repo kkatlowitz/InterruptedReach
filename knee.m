@@ -1,4 +1,4 @@
-function [turn_ind,turn_speed]=knee(coords,t,start_t,lpfilt,time_int,space_int)
+function [turn_time,turn_speed]=knee(coords,t,start_t,lpfilt,time_int,space_int)
 
 %This function returns the index of the coordinates where the turn
 %occurs. It works by calculating the x and y components of the
@@ -69,6 +69,8 @@ interval=t>time_int(1) & t<time_int(2) & ...
 %interval
 [turn_speed,turn_ind]=max(abs(diff(unwrap(atan2(yvelfilt,xvelfilt))).*...
     interval(1:end-2)));
+
+turn_time=t(turn_ind);
 
 %plot(coords(:,1),coords(:,2))
 %line(coords(turn_ind,1),coords(turn_ind,2),'Marker','o')
