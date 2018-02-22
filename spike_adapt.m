@@ -4,9 +4,13 @@ indlist=1:length(signal); %all the indices of the signal
 subs=ceil(indlist/176000); %segments of 4 seconds
 mins=accumarray(subs',signal',[],@min); %find the minimim of each segment
 breakpoints=find(abs(diff(mins)./mins(1:end-1))>0.25) * 176000;
-split=[breakpoints(1);diff(breakpoints);length(signal)-breakpoints(end)];
-signalbreak=mat2cell(signal,split);
-indexadd=cumsum(split);
+if ~isempty(breakpoints)
+    split=[breakpoints(1);diff(breakpoints);length(signal)-breakpoints(end)];
+    signalbreak=mat2cell(signal,split);
+    indexadd=cumsum(split);
+else
+    signalbreak{1}=signal;
+end
 for j=1:length(signalbreak)
     signal=signalbreak{j};
     i=1;
