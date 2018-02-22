@@ -1,8 +1,8 @@
 function ao=align_lfp(ao,b)
 
 
-b.psth_start_num=-4;
-b.psth_end_num=4;
+b.psth_start_num=-10;
+b.psth_end_num=10;
 b.binwidth=0.1;
 
 b.trial_start=b.tev1(b.trial_start_ind)';
@@ -27,12 +27,21 @@ for j=1:8
         psth_start_ind{padding(i)}=1;
     end
     
+    paddingend=find(cellfun(@(x) x>length(ao.lfp), psth_end_ind));
+    for i=1:length(paddingend)
+        psth_end_ind{paddingend(i)}=length(ao.lfp);
+    end
+    
     ao.trials(j,cellfun(@(x) ~isnan(x),psth_start_ind))=cellfun(@(x,y) ao.lfp(x:y)',...
         psth_start_ind(cellfun(@(x) ~isnan(x),psth_start_ind)),...
         psth_end_ind(cellfun(@(x) ~isnan(x),psth_end_ind)),'UniformOutput',0);
     
     for i=1:length(padding)
         ao.trials{j,padding(i)}=padarray(ao.trials{j,padding(i)},[0,(b.psth_end_num-b.psth_start_num)*ao.fs_low+1-length(ao.trials{j,padding(i)})],0,'pre');
+    end
+    
+    for i=1:length(paddingend)
+        ao.trials{j,paddingend(i)}=padarray(ao.trials{j,paddingend(i)},[0,(b.psth_end_num-b.psth_start_num)*ao.fs_low+1-length(ao.trials{j,paddingend(i)})],0,'post');
     end
     
 end
