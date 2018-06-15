@@ -21,7 +21,7 @@ for s=[1,2,4,7]
         end
     end
 end
-%% plot and save rasters with PSTH aligned to particular event
+%% plot rasters with PSTH aligned to particular event
 
 figure
 colors=get(gca,'colororder');
@@ -88,16 +88,23 @@ for s=[1,2,4,7]
                     ylims=get(gca,'YLim');
                     ylims(1)=0;
                     set(gca,'YLim',ylims);
+                    %title(['Single Unit ',num2str(i)])
                     if j==4
                         xlabel('Time (ms)')
                         if i==size(sub(s).block(blocknum).b(lead).su,2)
                             leg=legend(err([1,4,5]),'Go','Turn','Swerve');
                             set(leg,'box','off','Position',[0.47,-0.01,0.1,0.05],'units','normalized','orientation','horizontal')
+                            if size(sub(s).block(blocknum).b(lead).su,2)>1
+                                %tightfig;
+                            end
                         end
                     else
                         set(gca,'XTickLabel',{})
                     end
                     set(gca,'box','off')
+                    %if i~=1
+                    %    set(gca,'YTickLabel',{})
+                    %end
                 end
             end
             suptitle(['Subject ',num2str(s),' Block ',num2str(blocknum),' Lead ',num2str(lead)])
@@ -138,11 +145,27 @@ for s=[1,2,4,7]
                             plot(sub(s).block(blocknum).b(lead).su(event_plot(j),i).fr_times{types(k)},sub(s).block(blocknum).b(lead).su(event_plot(j),i).fr{types(k)},'Color',colors(k,:))
                         end
                     end
+                    %line([0,0],[0,400],'color','k')
                     title(event_names(j))
                     xlim([-2,2])
                     ylims=get(gca,'YLim');
                     ylims(1)=0;
                     set(gca,'YLim',ylims);
+                    %if b==1
+                    %    if i==1
+                    %        ylim([20 70])
+                    %    elseif i==2
+                    %        ylim([20 70])
+                    %   else
+                    %        ylim([0 10])
+                    %    end
+                    %else
+                    %    if i==3
+                    %       ylim([15,70])
+                    %    else
+                    %        ylim([15,70])
+                    %    end
+                    %end
                 end
             end
             suptitle(['Sub',num2str(s),'Block ',num2str(blocknum),'Lead',num2str(lead)])
@@ -204,28 +227,3 @@ for s=[1,2,4,7]
 end
 leg=legend(h,'Go','Turn','Swerve');
 set(leg,'Position',[0.35,-0.01,0.3,0.1],'box','off','orientation','horizontal')
-%%
-
-types=[1,4,5];
-events=[1,2,3,8];
-indstruct={};
-basestruct={};
-for s=1%[1,2,4,7] (output is quite large if you do this for all patients at once, I plan to automate it and do it on cluster eventually)
-    for blocknum=1:length(sub(s).block)
-        for lead=1:length(sub(s).block(blocknum).b)
-            for j=4%length(events)
-                for k=1:length(types)
-                    if j==4 && k==1
-                        continue
-                    else
-                        trial_type=sub(s).block(blocknum).b(lead).type;
-                        trial_type=trial_type==types(k) & cellfun(@(x) ~isempty(x),sub(s).block(blocknum).ao(lead).trials(events(j),:));
-                        [wt,f]=cellfun(@(x) cwt(x(7000:13000),1000,'amor','NumOctaves',9),sub(s).block(blocknum).ao(lead).trials(events(j),trial_type),'UniformOutput',0);
-                        basemat=cat(3,wt{:});
-                        basestruct{s,blocknum,lead,j,k}=basemat;
-                    end
-                end
-            end
-        end
-    end
-end
