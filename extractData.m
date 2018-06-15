@@ -23,7 +23,7 @@ if loadMicro
         disp('No Lead 2')
         lead2=[];
     end
-        %convert raw data on micro electrodes
+    %convert raw data on micro electrodes
     ao.fs=CRAW_01_KHz*1000;%sampling rate
     ao.dat=[lead1;lead2];
 else
