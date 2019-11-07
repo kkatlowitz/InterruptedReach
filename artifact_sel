@@ -1,0 +1,76 @@
+function artlog=artifact_sel(lfp,b,fs)
+
+    startlfp=round((b.tev1(b.trial_start_ind(1))-b.begin)*fs);
+    endlfp=round((b.tev1(b.trial_end_ind(end))-b.begin)*fs);
+    
+    lfpgood=false(1,size(lfp,1));
+    lfpgood(startlfp:endlfp)=true;
+    
+    lfp(~lfpgood)=NaN;
+    
+    
+    discont=startlfp:10000:endlfp;
+
+    trial_start_ind=discont(1:end-1)+1;
+    trial_end_ind=discont(2:end);
+    
+    art_start=[];
+    art_end=[];
+    
+    f=figure;
+    f.Position=[200 300 1000 500];
+    for i=1:length(trial_start_ind)
+        art=[];
+        plot(lfp(trial_start_ind(i):trial_end_ind(i)))
+        
+        prompt=true;
+        set(gcf,'name','True')
+        while prompt==true
+            k=waitforbuttonpress;
+            if k==1
+                str=get(gcf,'CurrentCharacter');
+                if strcmp(str,'y')
+                    prompt=false;
+                elseif strcmp(str,'n')
+                    %k2=waitforbuttonpress;
+                    %prompt=strcmp('True',get(gcf,'name'))
+                    x1=ginput(1);
+                    x1=x1(1);
+                    ylim=get(gca,'YLim');
+                    selection=patch([x1,x1,x1,x1],[ylim(2),ylim(1),ylim(1),ylim(2)],[1,0,0],'FaceAlpha',0.5,'EdgeColor','none');
+                    g=@(x,y) plot_select(x1,selection);
+                    set(f,'WindowButtonMotionFcn',g,'WindowButtonDownFcn',@stop_update);
+                    
+                    %art=selection.XData;
+                elseif strcmp(str,'r')
+                    selection.Visible='off';
+                    
+                end
+                
+                
+                
+            end
+            
+        end
+        if exist('selection','var') && isvalid(selection)
+            if strcmp(selection.Visible,'on')
+                art=selection.XData;
+                art_start=[art_start,round(art(1))+trial_start_ind(i)];
+                art_end=[art_end,round(art(3))+trial_start_ind(i)];
+            end
+        end
+    end
+    
+    if ~isempty(art_start)
+        artlog=1:length(lfp);
+        artlog=sum(bsxfun(@gt,artlog,art_start') & bsxfun(@lt,artlog,art_end'),1);
+    else
+        artlog=false(1,length(lfp));
+    end
+    close(f)
+    
+end
+
+function stop_update(hobject,eventdata)
+set(hobject,'WindowButtonMotionFcn',[],'WindowButtonDownFcn',[],'name','False')
+end
