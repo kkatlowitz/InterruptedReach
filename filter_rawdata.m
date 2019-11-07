@@ -1,22 +1,21 @@
-function ao=filter_rawdata(ao)
-fs=ao.fs;
-ao.fs_low=1375;%should be 1000
+function ao=filter_rawdata(ao,pathbase,s,blocknum,varargin)
 
-bpFilt = designfilt('bandpassfir','FilterOrder',500, ...
-    'CutoffFrequency1',250,'CutoffFrequency2',10000, ...
-    'SampleRate',fs);
-lfpFilt = designfilt('bandpassfir','FilterOrder',500, ... %% for LFP
-    'CutoffFrequency1',0.1,'CutoffFrequency2',50, ...
-    'SampleRate',ao.fs_low);
-ao.bp=filtfilt(bpFilt,ao.micro')';
-for i=1:size(ao.bp,1)
-    ao.lfp(i,:)=filtfilt(lfpFilt,resample(ao.micro(i,:),1,32));
+ao.fs_low=2000;
+params.Fs=ao.fs_low;  
+
+lfpall=resample(ao.dat,1,ao.fs/ao.fs_low);
+lfpall=locdetrend(lfpall,ao.fs_low,[10,1]);
+lfpall=rmlinesc(lfpall,params,0.05,'n');
+
+if nargin>4
+    SOS=varargin{1};
+    G=varargin{2};
+    lfpall=filtfilt(SOS,G,lfpall);
 end
-if fs~=44000
-    error('fix sampling rates')
+
+for ii=1:size(lfpall,2)
+    lfp=lfpall(:,ii);
+    lead=ii;
+    save([pathbase,'/LFP/Sub',num2str(s),'_Block',num2str(blocknum),'_Lead',num2str(ii)],'lfp','s','blocknum','lead','-v7.3')
 end
-%dont do
-%lpFilt = designfilt('bandstopfir','FilterOrder',500, ... %% use to get rid of slow oscillations
-%    'CutoffFrequency1',0.5,'CutoffFrequency2',3, ...
-%    'SampleRate',ao.fs_low);
-%ao.lfp=filtfilt(lpFilt,ao.lfp);  %% use to get rid of slow oscillations
+end
