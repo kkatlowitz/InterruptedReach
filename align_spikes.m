@@ -1,6 +1,6 @@
 function b=align_spikes(b,cluster_class)
 
-stimes=cluster_class(:,2)/1000 + b.begin; %spike times converted to seconds
+stimes=cluster_class(:,2) + b.begin; %spike times converted to seconds
 
 b.psth_start_num=-4;
 b.psth_end_num=4;
@@ -9,8 +9,8 @@ b.binwidth=0.1;
 b.trial_start=b.tev1(b.trial_start_ind)';
 b.trial_end=b.tev1(b.trial_end_ind)';
 
-event_plot=[1:6,8,9];
-for j=1:8
+event_plot=[1:6,8,9,10];
+for j=1:9
     psth_start=b.tev1_trials(:,event_plot(j)) + b.psth_start_num; %psth relative to fp_off
     psth_end=b.tev1_trials(:,event_plot(j))+ b.psth_end_num;
 
@@ -21,9 +21,9 @@ for j=1:8
     binu=(b.psth_start_num+b.binwidth):0.002:b.psth_end_num;
 
     %ntrials=length(unique(su(1).strials));
-
-    for i=1:length(unique(cluster_class(:,1)))-1
-        b.su(j,i).stimes=stimes(cluster_class(:,1)==i); %single unit spike times
+    clusters=unique(cluster_class(:,1));
+    for i=1:length(clusters)
+        b.su(j,i).stimes=stimes(cluster_class(:,1)==clusters(i)); %single unit spike times
 
         b.su(j,i).stimes(b.su(j,i).stimes<b.tev1(b.trial_start_ind(1)))=[];
 
