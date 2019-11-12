@@ -140,6 +140,8 @@ E = zeros(length(types),length(R));
 for ii=1:length(types)
     NTvar=sum(~isnan(RR(type==types(ii),:)));
     err1=NTvar<4;
+    RR_type=RR_ind{ii};
+    NT_type=nnz(type==types(ii));
     
     if err == 1
         E(ii,:) = sqrt(R(ii,:)./(2*sig*sqrt(pi).*NTvar));
@@ -148,8 +150,8 @@ for ii=1:length(types)
         mE = 0;
         sE = 0;
         for b=1:Nboot
-            indx = floor(NT*rand(1,NT)) + 1;
-            mtmp = mean(RR(indx,~err1),'omitnan');
+            indx = floor(NT_type*rand(1,NT_type)) + 1;
+            mtmp = mean(RR_type(indx,~err1),'omitnan');
             mE = mE + mtmp;
             sE = sE + mtmp.^2;
         end
@@ -279,6 +281,7 @@ if adapt
   if err == 1
       E = sqrt(R./(2*sigt*sqrt(pi).*NTvar));
   elseif err == 2
+      
     Nboot = 10;
     mE = 0;
     sE = 0;
@@ -308,14 +311,3 @@ ylabel('rate (Hz)')
 title(['Trial averaged rate : Gaussian Kernel :'  ...
 	    ' sigma = ' num2str(1000*sig) 'ms'])
 hold off
-
-
-
-
-
-
-
-
-
-
-
